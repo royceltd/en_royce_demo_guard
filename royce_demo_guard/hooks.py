@@ -1,5 +1,5 @@
 app_name = "royce_demo_guard"
-app_title = "Royce Demo Guard"
+app_title = "Demo Guard"
 app_publisher = "Royce Technologies LTD"
 app_description = "Protects the shared public demo tenant's login. Installed on the demo site only."
 app_email = "developer@roycetechnologies.co.ke"

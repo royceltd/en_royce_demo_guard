@@ -1,4 +1,4 @@
-### Royce Demo Guard
+### Demo Guard (`royce_demo_guard`)
 
 Protects the shared public demo tenant's login (`demo@royceerp.com`) from being
 changed by a visitor and locking out everyone after them.
