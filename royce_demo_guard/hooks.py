@@ -17,3 +17,8 @@ doc_events = {
 		"before_validate": "royce_demo_guard.guard.block_demo_password_change",
 	}
 }
+
+# The /update-password page sets the password without saving the User document.
+override_whitelisted_methods = {
+	"frappe.core.doctype.user.user.update_password": "royce_demo_guard.guard.update_password",
+}

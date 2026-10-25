@@ -16,12 +16,20 @@ to "" before before_save ever fires. A before_save version of this was tried
 first, confirmed broken via a real password-change attempt going through
 uncaught, and reverted.
 
+The /update-password page (frappe.core.doctype.user.user.update_password)
+writes the password straight to __Auth and never saves the User document, so
+before_validate never sees it. The demo password is public, so a visitor could
+change it there with the "old password" form; update_password below wraps that
+endpoint (override_whitelisted_methods) and refuses it for this account.
+
 Only blocks a password *change* on the one named account -- normal profile
 edits (phone number, etc.) on that same account still work, and this has no
 effect on any other user, including other users on this same site.
 """
 
 import frappe
+from frappe.core.doctype.user import user as frappe_user
+from frappe.utils.data import sha256_hash
 
 DEMO_USER = "demo@royceerp.com"
 
@@ -30,7 +38,26 @@ def block_demo_password_change(doc, method=None):
 	if doc.name != DEMO_USER:
 		return
 	if doc.get("new_password"):
-		frappe.throw(
-			"This is a shared public demo login. For security, its password can't be "
-			"changed here. Contact Royce ERP if you'd like your own trial account."
-		)
+		_refuse()
+
+
+@frappe.whitelist(allow_guest=True, methods=["POST"])
+def update_password(
+	new_password: str, logout_all_sessions: int = 0, key: str | None = None, old_password: str | None = None
+):
+	if key:
+		target = frappe.db.get_value("User", {"reset_password_key": sha256_hash(key)}, "name")
+	else:
+		target = frappe.session.user
+	if target == DEMO_USER:
+		_refuse()
+	return frappe_user.update_password(
+		new_password, logout_all_sessions=logout_all_sessions, key=key, old_password=old_password
+	)
+
+
+def _refuse():
+	frappe.throw(
+		"This is a shared public demo login. For security, its password can't be "
+		"changed here. Contact Royce ERP if you'd like your own trial account."
+	)
